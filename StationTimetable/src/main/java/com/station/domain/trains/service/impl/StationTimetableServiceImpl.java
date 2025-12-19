@@ -1,32 +1,26 @@
 package com.station.domain.trains.service.impl;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.station.domain.trains.model.StationTimetable;
 import com.station.domain.trains.service.StationTimetableService;
 
-@Service
+@Service 
 public class StationTimetableServiceImpl implements StationTimetableService {
+	@Autowired
+	private WebClient webClient;
 	
-	private final WebClient webClient;
-	
-	public StationTimetableServiceImpl(WebClient webClient) {
-		this.webClient = webClient;
-	}
-	
-	@Override
-	public String getStationTimetable() {
-		 return webClient.get()
-	                .uri(uriBuilder -> uriBuilder
-	                        .queryParam("odpt:operator", "odpt.Operator:JR-East")
-	                        .queryParam("odpt:railway", "odpt.Railway:JR-East.ChuoRapid")
-	                        .queryParam("odpt:station", "odpt.Station:JR-East.ChuoRapid.Tokyo")
-	                        .queryParam("odpt:railDirection", "odpt.RailDirection:JR-East.Outbound")
-	                        .queryParam("odpt:calendar", "odpt.Calendar:Weekday")
-	                        .queryParam("acl:consumerKey", "あなたのAPIキー")
-	                        .build())
-	                .retrieve()
-	                .bodyToMono(String.class)
-	                .block();
+	public List<StationTimetable> fetchStationTimetable() {
+
+	    return webClient.get()
+	            .uri("https://api.odpt.org/api/v4/odpt:StationTimetable")
+	            .retrieve()
+	            .bodyToFlux(StationTimetable.class)
+	            .collectList()
+	            .block();
 	}
 }
